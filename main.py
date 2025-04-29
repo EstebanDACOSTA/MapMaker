@@ -4,12 +4,13 @@ from random import shuffle
 import sys
 
 
-def cree_carte(nb):
+def cree_carte(nb,bool):
     carte = [[None] * nb for _ in range(nb)]
-    for i in range(nb):
-        for j in range(nb):
-            if i == 0 or i == nb-1 or j == 0 or j == nb-1:
-                carte[i][j] = 'SSSS'
+    if bool:
+        for i in range(nb):
+            for j in range(nb):
+                if i == 0 or i == nb-1 or j == 0 or j == nb-1:
+                    carte[i][j] = 'SSSS'
     return carte
 
 
@@ -84,8 +85,10 @@ def affichage_tuile(tuiles_possibles, dico, nb, nb_tuiles_par_ligne=12):
     total_h = max_lignes * tuile_h + (max_lignes + 1) * espacement
     start_y = y1 + (hauteur_rect - total_h) // 2
     if len(tuiles_possibles) == 0:
-        texte(largeur_fenetre()//2, hauteur_fenetre()//2, "Aucune tuile disponible. La carte ne peut pas être terminée.", ancrage="center", taille=12)
-
+        texte(largeur_fenetre()//2, hauteur_fenetre()//2, "Aucune tuile disponible. La carte ne peut pas être terminée.", ancrage="center", taille=12, tag="texte")
+        attente(1)
+        efface("menu_tuile")
+        efface("texte")
     for index, tuile in enumerate(tuiles_possibles):
         ligne = index // n
         if ligne >= max_lignes:
@@ -119,10 +122,9 @@ def placer_tuiles(grille, i, j, nom_tuile, dico, nb):
     x = j * taille_case + taille_case // 2
     y = i * taille_case + taille_case // 2
     # Ajout d'un tag unique basé sur les coordonnées
-    if grille[i][j] is not None:
-        image(x, y, dico[nom_tuile], ancrage="center", 
-            largeur=taille_case, hauteur=taille_case, 
-            tag=f"tuile_{i}_{j}")  # <-- Modification ici
+    image(x, y, dico[nom_tuile], ancrage="center", 
+          largeur=taille_case, hauteur=taille_case, 
+          tag=f"tuile_{i}_{j}")  # <-- Modification ici
     return grille
 
 
@@ -152,11 +154,11 @@ def solveur(grille, dico):
     return False
 
 
-def main():
-    cree_fenetre(1000, 1000)
+def main(bool):
+    cree_fenetre(600, 600)
     nb = 10
     sys.setrecursionlimit((nb ** 2) * 2)
-    carte = cree_carte(nb)
+    carte = cree_carte(nb,bool)
     dico = cree_dico("tuiles/")
     quadrillage(nb)
 
@@ -194,11 +196,12 @@ def main():
         if tev == "Touche":
             if touche(ev) == "s":
                 solveur(carte, dico)
-            if touche(ev) == "r":
+            if touche(ev)== "r":
                 ferme_fenetre()
-                main()
+                main(False)
+
         mise_a_jour()
 
 
 if __name__ == "__main__":
-    main()
+    main(True)
