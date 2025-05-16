@@ -1,4 +1,5 @@
-from os import *
+import os
+import ast
 from fltk import *
 from random import shuffle
 import sys
@@ -16,7 +17,7 @@ def cree_carte(nb,bool):
 
 def cree_dico(chemin):
     dico = {}
-    liste_elem = listdir(chemin)
+    liste_elem = os.listdir(chemin)
     for elem in liste_elem:
         dico[elem[:4]] = chemin + elem
     return dico
@@ -153,19 +154,72 @@ def solveur(grille, dico):
                 return False
     return False
 
+def sauvegarde(carte, nb):
+
+    save_folder_path = "sauvegarde"
+    os.makedirs(save_folder_path, exist_ok=True)
+
+    save_file_path = os.path.join(save_folder_path, "sauvegarde_partie.txt")
+
+    try:
+        with open(save_file_path, 'w', encoding='utf-8') as fichier:
+            fichier.write(str(carte) + '\n')
+            fichier.write(str(nb) + '\n')
+        print(f"Sauvegarde réussie dans {save_file_path}")
+
+
+    except Exception as e:
+        print("Erreur lors de la sauvegarde :", e)
+
+
+
+def ouvrir_sauvegarde():
+    save_file_path = os.path.join("sauvegarde", "sauvegarde_partie.txt")
+
+    # Vérifie si le fichier existe
+    if not os.path.exists(save_file_path):
+        print("Aucune sauvegarde trouvée.")
+        return None, None
+
+    try:
+        with open(save_file_path, 'r', encoding='utf-8') as fichier:
+            lignes = fichier.readlines()
+            carte_str = lignes[0].strip()
+            nb_str = lignes[1].strip()
+
+            carte = ast.literal_eval(carte_str)
+            nb = int(nb_str)
+
+            print("Sauvegarde chargée avec succès.")
+            return carte, nb
+
+    except Exception as e:
+        print("Erreur lors du chargement de la sauvegarde :", e)
+        return None, None
+
+
 
 def main(bool):
     cree_fenetre(600, 600)
-    nb = 10
-    sys.setrecursionlimit((nb ** 2) * 2)
-    carte = cree_carte(nb,bool)
     dico = cree_dico("tuiles/")
-    quadrillage(nb)
 
+    if bool:
+        nb = 10
+        carte = cree_carte(nb, True)
+        
+    else:
+        carte, nb = ouvrir_sauvegarde()
+       
+    sys.setrecursionlimit((nb ** 2) * 2)
+    
+    quadrillage(nb)
+    
     for i in range(nb):
         for j in range(nb):
-            if carte[i][j] == 'SSSS':
-                placer_tuiles(carte, i, j, 'SSSS', dico, nb)
+            if carte[i][j] is not None:
+                placer_tuiles(carte, i, j, carte[i][j], dico, nb)
+
+
 
     while True:
         ev = donne_ev()
@@ -198,10 +252,11 @@ def main(bool):
                 solveur(carte, dico)
             if touche(ev)== "r":
                 ferme_fenetre()
-                main(False)
+                main(True)
+            if touche(ev)=="e":
+                sauvegarde(carte,nb)
+    
+                
+                
 
         mise_a_jour()
-
-
-if __name__ == "__main__":
-    main(True)
